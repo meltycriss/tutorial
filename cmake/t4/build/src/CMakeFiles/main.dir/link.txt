@@ -1,0 +1,1 @@
+/usr/bin/gcc-4.9     CMakeFiles/main.dir/main.o  -o main -rdynamic /home/criss/turorial/cmake/t3/build/lib/libhello.so -Wl,-rpath,/home/criss/turorial/cmake/t3/build/lib 
