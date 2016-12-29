@@ -1,0 +1,6 @@
+message Request
+{
+  required int32 userid = 1;
+  required int32 type = 2;
+  optional string desc = 3;
+}

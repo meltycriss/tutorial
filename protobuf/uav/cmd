@@ -1,0 +1,2 @@
+protoc x.proto --cpp_out=./oo
+g++ -g -o x x.cpp ./oo/x.pb.cc `pkg-config --cflags --libs protobuf`
