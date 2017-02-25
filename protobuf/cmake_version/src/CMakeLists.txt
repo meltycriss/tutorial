@@ -1,0 +1,3 @@
+ADD_SUBDIRECTORY("./proto")
+ADD_EXECUTABLE(uav "./uav.cpp")
+TARGET_LINK_LIBRARIES(uav proto)

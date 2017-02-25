@@ -1,0 +1,10 @@
+/home/criss/turorial/protobuf/cmake_version/build/CMakeFiles/edit_cache.dir
+/home/criss/turorial/protobuf/cmake_version/build/CMakeFiles/rebuild_cache.dir
+/home/criss/turorial/protobuf/cmake_version/build/src/CMakeFiles/edit_cache.dir
+/home/criss/turorial/protobuf/cmake_version/build/src/CMakeFiles/rebuild_cache.dir
+/home/criss/turorial/protobuf/cmake_version/build/src/CMakeFiles/uav.dir
+/home/criss/turorial/protobuf/cmake_version/build/src/proto/CMakeFiles/edit_cache.dir
+/home/criss/turorial/protobuf/cmake_version/build/src/proto/CMakeFiles/rebuild_cache.dir
+/home/criss/turorial/protobuf/cmake_version/build/src/proto/CMakeFiles/proto.dir
+/home/criss/turorial/protobuf/cmake_version/build/python/CMakeFiles/edit_cache.dir
+/home/criss/turorial/protobuf/cmake_version/build/python/CMakeFiles/rebuild_cache.dir

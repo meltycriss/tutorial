@@ -1,0 +1,2 @@
+# Hashes of file build rules.
+3541a04621c97b2d417bc867c3c03547 src/proto/scene.pb.cc

@@ -1,0 +1,1 @@
+/usr/bin/g++-4.9      CMakeFiles/uav.dir/uav.o  -o uav  -L/home/criss/turorial/protobuf/cmake_version/build/src/proto -rdynamic proto/libproto.a -lprotobuf 
