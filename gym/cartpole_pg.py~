@@ -1,0 +1,63 @@
+import gym
+import numpy as np
+
+# \theta(s, a)
+def theta(s, a):
+    return long(np.dot(w.T, np.vstack((s,a))))
+
+# hypothesis p(a|s)
+def prob(s, a):
+    numerator = np.exp(theta(s, a))
+    denominator = np.exp(theta(s, 0)) + np.exp(theta(s, 1))
+    return numerator/denominator
+
+# hyperparams
+ALPHA = .001 #learning rate
+GAMA = .9 #discount
+MAX_EPI = 20000
+
+# variables
+w = np.random.rand(5,1)
+o = np.empty([4,1])
+a = None
+
+env = gym.make('CartPole-v0')
+
+epis_o = []
+epis_a = []
+epis_r = []
+for epi in range(MAX_EPI):
+    epi_o = []
+    epi_a = []
+    epi_r = []
+    o = env.reset()
+    accumulated_reward = 0
+    for t in range(200):
+        #env.render()
+        o = o.reshape((4,1))
+        epi_o.append(o)
+        action = 0 if np.random.random_sample()<=prob(o, 0) else 1
+        o, r, done, info = env.step(action)
+        epi_a.append(action)
+        accumulated_reward = accumulated_reward + r
+        epi_r.append(accumulated_reward)
+        if done:
+            #print("Episode finished after {} timesteps".format(t+1))
+            #epi_r[-1] = -50
+            # print epi_a
+            break;
+    if epi%100==0:
+        print len(epi_a), epi_a
+    for t in range(len(epi_o)):
+        s = epi_o[t]
+        a = epi_a[t]
+        Gt = epi_r[-1]-epi_r[t-1] if t>0 else epi_r[-1]
+        #print t, Gt
+        ev = np.vstack((s,a)) - (prob(s, 0) * np.vstack((s,0)) + prob(s, 1) * np.vstack((s,1)))
+        w = w + ALPHA * np.power(GAMA, t) * Gt * ev
+    #epis_o.append(epi_o)
+    #epis_a.append(epi_a)
+    #epis_r.append(epi_r)
+    
+
+
