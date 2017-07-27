@@ -63,6 +63,6 @@ for epi in range(MAX_EPI):
 plt.plot(x_it, y_r)
 plt.ylim((-1,250))
 plt.show()
-    
+   
 
 
