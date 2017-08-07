@@ -83,7 +83,7 @@ def learn(target_network, behavior_network, exp, optimizer):
     s_next_eval = target_network(s_next_batch).max(1)[0]
     Gt = r_batch + GAMMA * s_next_eval    
     Gt.detach_()
-    criterion = nn.MSELoss().cuda()
+    criterion = nn.MSELoss()
     if use_cuda:
         criterion.cuda()
     loss = criterion(s_eval, Gt)
