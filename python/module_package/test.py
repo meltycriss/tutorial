@@ -33,6 +33,9 @@
 #import foo.bar
 #foo.bar.func.hello() # invalid because only import foo/bar/__init__.py
 
+## 5.3 import will execute .py
+#import foobar
+
 # ------------------------------------------------------------------------
 
 # 6. from .func import hello
