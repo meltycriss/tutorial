@@ -3,14 +3,33 @@ from NatNetClient import NatNetClient
 import time
 import serial
 import struct
+import numpy as np
+from Env import Env
+
+###########################################
+# ATTENTION
+# order of rigid bodies in motive matters!
+#   - robots should precede obstacles
+#   - obs_r[i] corresponds to i+1-th obstacles
+###########################################
+
+###########################################
+# task specification
+###########################################
+uav_r = .3
+obs_r = np.array([.4, .3]) # ORDER IS IMPORTANT
+goal = np.array([0., 2.])
+bound = np.array([2., 4.]) # range of the map
 
 ###########################################
 # hyper-parameter
 ###########################################
 
 hp_n_bot = 3 # number of robots
-hp_n_obs = 0 # number of obstacles
+hp_n_obs = obs_r.shape[0] # number of obstacles
+hp_dim = 2
 hp_queue_size = 10 # queue buffer size
+hp_fps = 1
 
 ###########################################
 # optitrack stuff
@@ -22,14 +41,14 @@ qs_obs = [queue.Queue(hp_queue_size) for _ in range(hp_n_obs)]
 def receiveRigidBodyFrame(id, position, rotation):
     global qs_bot
     global qs_obs
-
-    # ROBOTS SHOULD PRECEDE OBSTACLES IN MOTIVE
-    if id <= hp_n_bot:
+    # robots should precede obstacles
+    if id<=hp_n_bot:
         q = qs_bot[id-1]
-    else:
+    elif id-hp_n_bot<=hp_n_obs:
         q = qs_obs[id-hp_n_bot-1]
+    else: # meaningless rigid bodies
+        return
 
-    q = qs[id-1]
     if q.full():
         q.get()
     q.put(position)
@@ -44,6 +63,7 @@ CMD_LAND = 2
 CMD_RESET = 3
 CMD_CTRL = 4
 
+# serial port parameter
 ser = serial.Serial()
 ser.port = "/dev/ttyUSB0"
 ser.baudrate = 115200
@@ -77,10 +97,8 @@ def sendCommand(id, cmd, x, y, z, w):
     assert isinstance(z, float)
     assert isinstance(w, float) # rotation
     # restriction of the receiver
-    assert (x<3.)
-    assert (y<3.)
-    assert (z<3.)
-    assert (w<3.)
+    if x>=3 or y>=3 or z>=3 or w>=3:
+        print ("[WARNING] variables >= 3: {}".format((x, y, z, w)))
 
     header = bytearray.fromhex('fe')
     index  = bytearray.fromhex(format(id, '02x')) # robot are 1-idx
@@ -104,23 +122,72 @@ def sendCommand(id, cmd, x, y, z, w):
     num_of_bytes = ser.write(frame)
     # print (num_of_bytes)
 
+# adapt to bot's local coordinate system
+#
+#   from   y       to          x
+#          |                   |
+#          |                   |
+#          ----x           y----
+def adapt_to_bot_frame(v):
+    m = np.array([[0., 1.], [-1., 0.]])
+    if len(v.shape)==1:
+        return np.dot(m, v)
+    else:
+        return np.dot(m, v.transpose()).transpose()
+
+def policy(o):
+    return np.zeros((hp_n_bot, hp_dim))
+
 ###########################################
 # main
 ###########################################
 if __name__=='__main__':
-    # open motive client
+    # run motive client
     streamingClient = NatNetClient()
     streamingClient.rigidBodyListener = receiveRigidBodyFrame
     streamingClient.run()
+
     # open serial port communication
     ser.open()
+    time.sleep(.1) # ensure serial port is ready
+
+    env = Env(obs_r, goal, bound, uav_r)
+
     # main loop
     while True:
-        time.sleep(1)
-        for i, q in enumerate(qs):
+        # control fps
+        time.sleep(1./hp_fps)
+
+        # fetch data from optitrack
+        bot_pos = np.zeros((hp_n_bot, hp_dim))
+        for i, q in enumerate(qs_bot):
             p = q.get()
-            print ("{}: {}".format(i, p))
-            print ((type(p)))
-        sendCommand(3, CMD_CTRL, 1., -1.522, -2.333, -2.5666)
-        break
+            bot_pos[i] = p[0:2] # only care about x and y
+
+        obs_pos = np.zeros((hp_n_obs, hp_dim))
+        for i, q in enumerate(qs_obs):
+            p = q.get()
+            obs_pos[i] = p[0:2] # only care about x and y
+
+        # get observation
+        o, done = env.step(bot_pos, obs_pos)
+        env.render()
+
+        # compute action
+        v = policy(o)
+        v.reshape((hp_n_bot, hp_dim))
+        v = adapt_to_bot_frame(v)
+
+        # send command to robots
+        for i in range(hp_n_bot):
+            sendCommand(i+1, CMD_CTRL, v[i][0], v[i][1], 0., 0.) # robot is 1-idx
+
+        # if done:
+        #     break
+
+    # close serial port communication
+    ser.flush() # ensure no remaining data in buffer before closing serial port
     ser.close() # what if the process is killed?
+
+    # stop motive client
+    streamingClient.stop()
