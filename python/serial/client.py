@@ -3,7 +3,7 @@ import serial
 ser = serial.Serial()
 ser.port = "/dev/ttyUSB0"
 ser.baudrate = 115200
-ser.baudrate = 9600
+# ser.baudrate = 9600
 ser.bytesize = serial.EIGHTBITS
 ser.parity = serial.PARITY_NONE
 ser.timeout = 1.
